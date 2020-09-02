@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElixAudioPlayer", "ElixAudioPlayer\ElixAudioPlayer.csproj", "{3030ADB2-E4AE-4E8A-9E6D-F78D5EC8F7F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonModule", "CommonModule\CommonModule.csproj", "{73D1C4F5-2A54-4A12-9BFF-6BD96DBC6095}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3030ADB2-E4AE-4E8A-9E6D-F78D5EC8F7F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3030ADB2-E4AE-4E8A-9E6D-F78D5EC8F7F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3030ADB2-E4AE-4E8A-9E6D-F78D5EC8F7F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3030ADB2-E4AE-4E8A-9E6D-F78D5EC8F7F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73D1C4F5-2A54-4A12-9BFF-6BD96DBC6095}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73D1C4F5-2A54-4A12-9BFF-6BD96DBC6095}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73D1C4F5-2A54-4A12-9BFF-6BD96DBC6095}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73D1C4F5-2A54-4A12-9BFF-6BD96DBC6095}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7255FE58-C68D-42C0-8C5D-76A7D38654D7}
+	EndGlobalSection
+EndGlobal

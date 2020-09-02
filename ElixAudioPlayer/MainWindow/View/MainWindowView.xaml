@@ -1,0 +1,41 @@
+﻿<Window x:Class="ElixAudioPlayer.MainWindow.View.MainWindowView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ElixAudioPlayer.MainWindow.ViewModels"
+        
+        xmlns:slideMenu="clr-namespace:ElixAudioPlayer.MenuSlider.View"
+        xmlns:musicControls="clr-namespace:ElixAudioPlayer.MusicControls.View" 
+        xmlns:navigator="clr-namespace:CommonModule.Navigator.View;assembly=CommonModule"
+        xmlns:navigatorService="clr-namespace:CommonModule.Services.NavigatorService;assembly=CommonModule"
+        xmlns:local="clr-namespace:ElixAudioPlayer"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        d:DataContext="{d:DesignInstance vm:MainWindowViewModel}">
+    <Window.DataContext>
+        <vm:MainWindowViewModel></vm:MainWindowViewModel>
+    </Window.DataContext>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <slideMenu:MenuSlideView HorizontalAlignment="Left"/>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="70"/>
+            </Grid.RowDefinitions>
+            <navigator:NavigatorView DataContext="{Binding Source={x:Static navigatorService:NavigatorService.Instance},
+                                                           Path=NavigatorViewModel}">
+            
+            </navigator:NavigatorView>
+            <musicControls:MusicControlView Grid.Row="1"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Bottom"
+                                            DataContext="{Binding MusicControlViewModel}"/>
+        </Grid>
+    </Grid>
+</Window>
