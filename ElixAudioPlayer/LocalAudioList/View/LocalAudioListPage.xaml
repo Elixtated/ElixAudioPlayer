@@ -19,7 +19,7 @@
             <RowDefinition/>
             <RowDefinition Height="0.1*"/>
         </Grid.RowDefinitions>
-        <ListBox ItemsSource="{Binding Tracks.Values}" SelectedItem="{Binding SelectedTrack}">
+        <ListBox ItemsSource="{Binding Tracks}" SelectedItem="{Binding SelectedTrack,Mode= TwoWay}">
 
             <ListBox.ItemTemplate>
                 <DataTemplate>

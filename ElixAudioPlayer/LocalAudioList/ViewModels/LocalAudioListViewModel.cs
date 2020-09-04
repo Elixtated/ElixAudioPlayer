@@ -23,7 +23,7 @@ namespace ElixAudioPlayer.LocalAudioList.ViewModels
         }
 
         public ICommand OpenBrowseCommand { get; }
-       
+
         private void OpenBrowse()
         {
             OpenFileDialog fileDialog = new OpenFileDialog
@@ -39,6 +39,10 @@ namespace ElixAudioPlayer.LocalAudioList.ViewModels
                 string[] TrackSourceArray = fileDialog.FileNames;
                 string performerName;
                 int TrackCount = 0;
+                if(TracksOrder.Count != 0)
+                {
+                    TrackCount = TracksOrder.Count;
+                }
                 foreach (var trackSource in TrackSourceArray)
                 {
                     TagLib.File audioFile = TagLib.File.Create(trackSource);
@@ -50,15 +54,16 @@ namespace ElixAudioPlayer.LocalAudioList.ViewModels
                     {
                         performerName = Path.GetFileName(trackSource);
                     }
-
-                    Tracks.Add(TrackCount, new Track(performerName)
+                    var track = new Track()
                     {
-                        FileSourse = trackSource,
+                        FileSource = trackSource,
                         Title = toUtf8(audioFile.Tag.Title),
                         Performer = toUtf8(performerName),
                         Album = toUtf8(audioFile.Tag.Album),
                         Duration = audioFile.Properties.Duration,
-                    });
+                    };
+                    Tracks.Add(track);
+                    TracksOrder.Add(track.Guid, TrackCount);
                     TrackCount++;
                 }
             }

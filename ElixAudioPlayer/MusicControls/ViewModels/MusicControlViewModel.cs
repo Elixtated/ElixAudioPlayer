@@ -1,13 +1,8 @@
-﻿using CommonModule;
-using CommonModule.BaseViewModel;
+﻿using CommonModule.BaseViewModel;
 using CommonModule.CommonTools;
-using ElixAudioPlayer.LocalAudioList.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -19,6 +14,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         private double _maxDurationValue;
         private bool _isPlaying;
         private int _positionValue;
+        private TimeSpan _trackTimeNow;
 
 
         public MusicControlViewModel()
@@ -27,9 +23,9 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             PlayCommand = new RelayCommand(PlayPause);
             SetVolumeCommand = new RelayCommand(SetVolume);
             SetPositionCommand = new RelayCommand(SetPosition);
-
+            MediaPlayer.MediaEnded += PlayNextTrack;
         }
-        
+
         public BasePlayListViewModel CurrentPlayListViewModel { get; set; }
         MediaPlayer MediaPlayer { get; set; }
        
@@ -58,11 +54,38 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         public int PositionValue
         {
             get => _positionValue;
-            set => Set(ref _positionValue, value);
+            set
+            {
+                Set(ref _positionValue, value);
+            }
+        }
+
+        public TimeSpan TrackTimeNow
+        {
+            get => MediaPlayer.Position;
+            set => Set(ref _trackTimeNow, value);
         }
         #endregion
 
+        private void PlayNextTrack(object sender, EventArgs e)
+        {
+           
+            var currentTrack = CurrentPlayListViewModel.TracksOrder.FirstOrDefault(x => x.Key == CurrentPlayListViewModel.SelectedTrack.Guid);
+            int nextTrackIndex;
+            if (!currentTrack.Equals(default(KeyValuePair<Guid, int>)))
+            {
+                nextTrackIndex = currentTrack.Value + 1;
 
+                if (CurrentPlayListViewModel.Tracks.Count > nextTrackIndex)
+                {
+                    CurrentPlayListViewModel.SelectedTrack = CurrentPlayListViewModel.Tracks[nextTrackIndex];
+                    MediaPlayer.Open(new Uri(CurrentPlayListViewModel.Tracks[nextTrackIndex].FileSource));
+                    MaxDurationValue = CurrentPlayListViewModel.SelectedTrack.Duration.TotalSeconds;
+                    PositionValue = 0;
+                    MediaPlayer.Play();
+                }
+            }
+        }
 
         public void PlayPause()
         {
@@ -70,20 +93,20 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             {
                 if (CurrentPlayListViewModel.SelectedTrack != null && CurrentPlayListViewModel != null)
                 {
-                    MediaPlayer.Open(new Uri(CurrentPlayListViewModel.SelectedTrack.FileSourse));
+                    MediaPlayer.Open(new Uri(CurrentPlayListViewModel.SelectedTrack.FileSource));
                     MaxDurationValue = CurrentPlayListViewModel.SelectedTrack.Duration.TotalSeconds;
+                    PositionValue = 0;
                     MediaPlayer.Play();
                     IsPlaying = true;
- 
                 }
             }
             else if(IsPlaying)
             {
                 MediaPlayer.Pause();
                 IsPlaying = false;
-            }
-            
+            }   
         }
+
 
         public void SetVolume()
         {
@@ -92,10 +115,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
         public void SetPosition()
         {
-                MediaPlayer.Pause();
-                TimeSpan time = new TimeSpan(0, 0, Convert.ToInt32(Math.Round((double)PositionValue)));
-                MediaPlayer.Position = time;
-                MediaPlayer.Play();  
+            MediaPlayer.Position = TimeSpan.FromSeconds(PositionValue);
         }
     }
 }

@@ -15,15 +15,17 @@ namespace CommonModule.CommonModules
         private string _title;
         private string _album;
         private TimeSpan _duration;
+        
 
-        public Track(string performer)
+        public Track()
         {
-
+            Guid = Guid.NewGuid();
         }
 
 
+        public Guid Guid { get; set; }
 
-        public string FileSourse
+        public string FileSource
         {
             get => _fileSource;
             set

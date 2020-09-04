@@ -11,7 +11,7 @@
         xmlns:navigatorService="clr-namespace:CommonModule.Services.NavigatorService;assembly=CommonModule"
         xmlns:local="clr-namespace:ElixAudioPlayer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
+        Title="MainWindow" Height="450" Width="1150"
         d:DataContext="{d:DesignInstance vm:MainWindowViewModel}">
     <Window.DataContext>
         <vm:MainWindowViewModel></vm:MainWindowViewModel>

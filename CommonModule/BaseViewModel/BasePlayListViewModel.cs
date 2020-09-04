@@ -10,12 +10,21 @@ namespace CommonModule.BaseViewModel
 {
     public class BasePlayListViewModel : ViewModel
     {
+        private Track _selectedTrack;
         public BasePlayListViewModel()
         {
-            Tracks = new Dictionary<int, Track>();
+            Tracks = new ObservableCollection<Track>();
+            TracksOrder = new Dictionary<Guid, int>();
         }
 
-        public Dictionary<int,Track> Tracks { get; set; }
-        public Track SelectedTrack { get; set; }
+        public ObservableCollection<Track> Tracks { get; set; }
+        public Track SelectedTrack
+        {
+            get => _selectedTrack;
+            set=> Set(ref _selectedTrack, value);
+            
+        }
+
+        public Dictionary<Guid, int> TracksOrder { get; set; }
     }
 }

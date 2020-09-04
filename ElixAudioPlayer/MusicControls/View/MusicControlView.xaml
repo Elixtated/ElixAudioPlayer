@@ -24,22 +24,23 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="0.05*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="0:00" 
+            <TextBlock Grid.Column="0" Text="{Binding TrackTimeNow,Mode=TwoWay}" 
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
             <Slider Grid.Column="1"
                     Height="20"
-                    TickFrequency="1"
+                    TickFrequency="0.01"
                     Minimum="0"
                     Maximum="{Binding MaxDurationValue}"
                     Value="{Binding PositionValue,Mode=TwoWay}">
+                
                 <intr:Interaction.Triggers>
-                    <intr:EventTrigger EventName="ValueChanged">
+                    <intr:EventTrigger EventName="LostMouseCapture">
                         <intr:InvokeCommandAction Command="{Binding SetPositionCommand}"/>
                     </intr:EventTrigger>
                 </intr:Interaction.Triggers>
             </Slider>
-            <TextBlock Grid.Column="2" Text="0:00" 
+            <TextBlock Grid.Column="2" Text="{Binding MaxDurationValue}" 
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
         </Grid>
