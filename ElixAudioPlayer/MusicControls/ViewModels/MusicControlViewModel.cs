@@ -3,8 +3,10 @@ using CommonModule.CommonTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace ElixAudioPlayer.MusicControls.ViewModels
 {
@@ -13,8 +15,9 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         private double _volumeValue = 1.0;
         private double _maxDurationValue;
         private bool _isPlaying;
-        private int _positionValue;
+        private double _positionValue;
         private TimeSpan _trackTimeNow;
+        private TimeSpan _trackTotalDuration;
 
 
         public MusicControlViewModel()
@@ -28,7 +31,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
         public BasePlayListViewModel CurrentPlayListViewModel { get; set; }
         MediaPlayer MediaPlayer { get; set; }
-       
+
 
         public ICommand PlayCommand { get; }
         public ICommand SetVolumeCommand { get; }
@@ -41,7 +44,8 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             set => Set(ref _volumeValue, value);
         }
         public double MaxDurationValue
-        {   get => _maxDurationValue;
+        {
+            get => _maxDurationValue;
             set => Set(ref _maxDurationValue, value);
         }
 
@@ -51,7 +55,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             set => Set(ref _isPlaying, value);
         }
 
-        public int PositionValue
+        public double PositionValue
         {
             get => _positionValue;
             set
@@ -65,11 +69,17 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             get => MediaPlayer.Position;
             set => Set(ref _trackTimeNow, value);
         }
+
+        public TimeSpan TrackTotalDuration
+        {
+            get => _trackTotalDuration;
+            set => Set(ref _trackTotalDuration,value);
+        }
         #endregion
 
         private void PlayNextTrack(object sender, EventArgs e)
         {
-           
+
             var currentTrack = CurrentPlayListViewModel.TracksOrder.FirstOrDefault(x => x.Key == CurrentPlayListViewModel.SelectedTrack.Guid);
             int nextTrackIndex;
             if (!currentTrack.Equals(default(KeyValuePair<Guid, int>)))
@@ -80,13 +90,18 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
                 {
                     CurrentPlayListViewModel.SelectedTrack = CurrentPlayListViewModel.Tracks[nextTrackIndex];
                     MediaPlayer.Open(new Uri(CurrentPlayListViewModel.Tracks[nextTrackIndex].FileSource));
-                    MaxDurationValue = CurrentPlayListViewModel.SelectedTrack.Duration.TotalSeconds;
+                    
+                    TrackTotalDuration = CurrentPlayListViewModel.SelectedTrack.Duration;
+                    MaxDurationValue = TrackTotalDuration.TotalSeconds;
                     PositionValue = 0;
                     MediaPlayer.Play();
+                    Timer();
                 }
             }
         }
 
+
+        
         public void PlayPause()
         {
             if (!IsPlaying)
@@ -94,24 +109,46 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
                 if (CurrentPlayListViewModel.SelectedTrack != null && CurrentPlayListViewModel != null)
                 {
                     MediaPlayer.Open(new Uri(CurrentPlayListViewModel.SelectedTrack.FileSource));
-                    MaxDurationValue = CurrentPlayListViewModel.SelectedTrack.Duration.TotalSeconds;
+                    TrackTotalDuration = CurrentPlayListViewModel.SelectedTrack.Duration;
+                    MaxDurationValue = TrackTotalDuration.TotalSeconds;
                     PositionValue = 0;
                     MediaPlayer.Play();
                     IsPlaying = true;
+                    Timer();
                 }
             }
-            else if(IsPlaying)
+            else if (IsPlaying)
             {
                 MediaPlayer.Pause();
                 IsPlaying = false;
-            }   
+            }
         }
 
 
+        private void Timer()
+        {
+            var timerVideoTime = new DispatcherTimer();
+            timerVideoTime.Interval = TimeSpan.FromSeconds(1);
+            timerVideoTime.Tick += new EventHandler(timerTick);
+            timerVideoTime.Start();
+        }
+
+        void timerTick(object sender, EventArgs e)
+        {
+            if (MediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+            {
+                if (TrackTimeNow.TotalSeconds > 0)
+                {
+                    TrackTimeNow = MediaPlayer.Position;
+                    PositionValue = TrackTimeNow.TotalSeconds;
+                }
+            }
+        }
+
         public void SetVolume()
         {
-            MediaPlayer.Volume = VolumeValue; 
-        }  
+            MediaPlayer.Volume = VolumeValue;
+        }
 
         public void SetPosition()
         {

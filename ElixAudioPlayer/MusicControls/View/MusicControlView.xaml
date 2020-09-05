@@ -24,7 +24,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="0.05*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="{Binding TrackTimeNow,Mode=TwoWay}" 
+            <TextBlock Grid.Column="0" Text="{Binding TrackTimeNow,UpdateSourceTrigger=PropertyChanged}" 
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
             <Slider Grid.Column="1"
@@ -40,7 +40,7 @@
                     </intr:EventTrigger>
                 </intr:Interaction.Triggers>
             </Slider>
-            <TextBlock Grid.Column="2" Text="{Binding MaxDurationValue}" 
+            <TextBlock Grid.Column="2" Text="{Binding TrackTotalDuration}" 
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
         </Grid>

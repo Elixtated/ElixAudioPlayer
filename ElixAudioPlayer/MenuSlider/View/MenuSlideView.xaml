@@ -72,7 +72,7 @@
                     VerticalAlignment="Top"
                     HorizontalAlignment="Right"
                     Visibility="{Binding IsClose,
-                Converter={StaticResource booleanToVisibilityConverter}}"
+                    Converter={StaticResource booleanToVisibilityConverter}}"
                     Command="{Binding OpenMenuCommand}">
                 <materialDesign:PackIcon Foreground="#FF1B3861" 
                                          Kind="Menu"
