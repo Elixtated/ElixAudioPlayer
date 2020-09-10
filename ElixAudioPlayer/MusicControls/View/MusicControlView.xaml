@@ -10,9 +10,12 @@
              mc:Ignorable="d" 
              Background="White"
              d:DataContext="{d:DesignInstance vm:MusicControlViewModel}">
-    <UserControl.DataContext>
-        <vm:MusicControlViewModel/>
-    </UserControl.DataContext>
+    
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="0.7*"/>
@@ -24,7 +27,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="0.05*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="{Binding TrackTimeNow,UpdateSourceTrigger=PropertyChanged}" 
+            <TextBlock Grid.Column="0" Text="{Binding TimeNowText}" 
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
             <Slider Grid.Column="1"
@@ -33,14 +36,14 @@
                     Minimum="0"
                     Maximum="{Binding MaxDurationValue}"
                     Value="{Binding PositionValue,Mode=TwoWay}">
-                
+
                 <intr:Interaction.Triggers>
                     <intr:EventTrigger EventName="LostMouseCapture">
                         <intr:InvokeCommandAction Command="{Binding SetPositionCommand}"/>
                     </intr:EventTrigger>
                 </intr:Interaction.Triggers>
             </Slider>
-            <TextBlock Grid.Column="2" Text="{Binding TrackTotalDuration}" 
+            <TextBlock Grid.Column="2" Text="{Binding TotalDurationText}" 
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
         </Grid>
@@ -96,6 +99,48 @@
                         Background="{x:Null}"
                         BorderBrush="{x:Null}"
                         Command="{Binding PlayCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsPlaying}" Value="true">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate>
+                                                <StackPanel Cursor="Hand">
+                                                    <materialDesign:PackIcon Kind="PauseCircle"
+                                                Foreground="#FF1B3861"
+                                                                    
+                                                Width="30"
+                                                Height="35"
+                                                VerticalAlignment="Center"
+                                                 HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+
+                                <DataTrigger Binding="{Binding IsPlaying}" Value="false">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate>
+                                                <StackPanel Cursor="Hand">
+                                                    <materialDesign:PackIcon Kind="PlayCircle"
+                                                 Foreground="#FF1B3861"
+                                                 Cursor="Hand"  
+                                                Width="30"
+                                                Height="35"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                                
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <materialDesign:PackIcon Kind="PlayCircle"
                                              Foreground="#FF1B3861"
                                              Width="30"
@@ -103,11 +148,27 @@
                                              VerticalAlignment="Center"
                                              HorizontalAlignment="Center"/>
                 </Button>
+
+                <!--<Button Grid.Column="2"
+                        Width="60"
+                        Height="40"
+                        Background="{x:Null}"
+                        BorderBrush="{x:Null}"
+                        Visibility="{Binding IsPlaying,
+                    Converter={StaticResource booleanToVisibilityConverter}}"
+                        Command="{Binding PauseCommand}">
+                    <materialDesign:PackIcon Kind="PauseCircle"
+                                             Foreground="#FF1B3861"
+                                             Width="30"
+                                             Height="35"
+                                             VerticalAlignment="Center"
+                                             HorizontalAlignment="Center"/>
+                </Button>-->
                 <Button Grid.Column="3"
                         Width="60"
                         Height="40"
                         Background="{x:Null}"
-                    BorderBrush="{x:Null}">
+                        BorderBrush="{x:Null}">
                     <materialDesign:PackIcon Kind="SkipNext"
                                              Foreground="#FF1B3861"
                                              Width="30"

@@ -17,13 +17,15 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         private bool _isPlaying;
         private double _positionValue;
         private TimeSpan _trackTimeNow;
-        private TimeSpan _trackTotalDuration;
+        private string _timeNowText;
+        private string _totalDurationText;
 
 
         public MusicControlViewModel()
         {
             MediaPlayer = new MediaPlayer();
-            PlayCommand = new RelayCommand(PlayPause);
+            PlayCommand = new RelayCommand(Play);
+            SelectAndPlayTrackCommand = new RelayCommand(SelectAndPlayTrack);
             SetVolumeCommand = new RelayCommand(SetVolume);
             SetPositionCommand = new RelayCommand(SetPosition);
             MediaPlayer.MediaEnded += PlayNextTrack;
@@ -36,8 +38,12 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         public ICommand PlayCommand { get; }
         public ICommand SetVolumeCommand { get; }
         public ICommand SetPositionCommand { get; }
+        public ICommand SelectAndPlayTrackCommand { get; }
+
+
 
         #region Propertyes
+
         public double VolumeValue
         {
             get => _volumeValue;
@@ -68,13 +74,22 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         {
             get => MediaPlayer.Position;
             set => Set(ref _trackTimeNow, value);
+
         }
 
-        public TimeSpan TrackTotalDuration
+        public string TimeNowText
         {
-            get => _trackTotalDuration;
-            set => Set(ref _trackTotalDuration,value);
+            get => _timeNowText;
+            set => Set(ref _timeNowText, value);
         }
+
+        public string TotalDurationText
+        {
+            get => _totalDurationText;
+            set => Set(ref _totalDurationText, value);
+        }
+
+
         #endregion
 
         private void PlayNextTrack(object sender, EventArgs e)
@@ -84,63 +99,86 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             int nextTrackIndex;
             if (!currentTrack.Equals(default(KeyValuePair<Guid, int>)))
             {
-                nextTrackIndex = currentTrack.Value + 1;
+                nextTrackIndex =/*isRepeat ? currentTrack.Value:*/currentTrack.Value + 1;
+                
 
                 if (CurrentPlayListViewModel.Tracks.Count > nextTrackIndex)
                 {
                     CurrentPlayListViewModel.SelectedTrack = CurrentPlayListViewModel.Tracks[nextTrackIndex];
-                    MediaPlayer.Open(new Uri(CurrentPlayListViewModel.Tracks[nextTrackIndex].FileSource));
-                    
-                    TrackTotalDuration = CurrentPlayListViewModel.SelectedTrack.Duration;
-                    MaxDurationValue = TrackTotalDuration.TotalSeconds;
-                    PositionValue = 0;
-                    MediaPlayer.Play();
-                    Timer();
+                    StartTrack(new Uri(CurrentPlayListViewModel.Tracks[nextTrackIndex].FileSource));
                 }
             }
         }
 
 
-        
-        public void PlayPause()
+
+        public void Play()
         {
-            if (!IsPlaying)
+            IsPlaying = !IsPlaying;
+            if (IsPlaying)
             {
                 if (CurrentPlayListViewModel.SelectedTrack != null && CurrentPlayListViewModel != null)
                 {
-                    MediaPlayer.Open(new Uri(CurrentPlayListViewModel.SelectedTrack.FileSource));
-                    TrackTotalDuration = CurrentPlayListViewModel.SelectedTrack.Duration;
-                    MaxDurationValue = TrackTotalDuration.TotalSeconds;
-                    PositionValue = 0;
-                    MediaPlayer.Play();
-                    IsPlaying = true;
-                    Timer();
+                    if (!MediaPlayer.HasAudio)
+                    {
+                        StartTrack(new Uri(CurrentPlayListViewModel.SelectedTrack.FileSource));
+                    }
+                    else if (MediaPlayer.HasAudio)
+                    {
+                        MediaPlayer.Play();
+                        Timer();
+                    }
                 }
             }
-            else if (IsPlaying)
+            else
             {
                 MediaPlayer.Pause();
-                IsPlaying = false;
             }
+            
         }
 
+        public void SelectAndPlayTrack()
+        {
+            StartTrack(new Uri(CurrentPlayListViewModel.SelectedTrack.FileSource));
+            IsPlaying = true;
+        }
+
+
+        private void StartTrack(Uri path)
+        {
+            MediaPlayer.Open(path);
+            var trackTotalDuration = CurrentPlayListViewModel.SelectedTrack.Duration;
+            TotalDurationText = String.Format("{0:00}:{1:00}:{2:00}", trackTotalDuration.Hours, trackTotalDuration.Minutes, trackTotalDuration.Seconds);
+
+            MaxDurationValue = trackTotalDuration.TotalSeconds;
+
+            PositionValue = 0;
+
+            MediaPlayer.Play();
+            Timer();
+        }
 
         private void Timer()
         {
             var timerVideoTime = new DispatcherTimer();
             timerVideoTime.Interval = TimeSpan.FromSeconds(1);
-            timerVideoTime.Tick += new EventHandler(timerTick);
+            timerVideoTime.Tick += new EventHandler(TimerTick);
             timerVideoTime.Start();
+            
         }
 
-        void timerTick(object sender, EventArgs e)
+        void TimerTick(object sender, EventArgs e)
         {
-            if (MediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+            if (MediaPlayer.NaturalDuration.HasTimeSpan)
             {
-                if (TrackTimeNow.TotalSeconds > 0)
+                if (MediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
                 {
-                    TrackTimeNow = MediaPlayer.Position;
-                    PositionValue = TrackTimeNow.TotalSeconds;
+                    if (TrackTimeNow.TotalSeconds > 0)
+                    {
+                        TrackTimeNow = MediaPlayer.Position;
+                        TimeNowText = String.Format("{0:00}:{1:00}:{2:00}", TrackTimeNow.Hours, TrackTimeNow.Minutes, TrackTimeNow.Seconds);
+                        PositionValue = TrackTimeNow.TotalSeconds;
+                    }
                 }
             }
         }

@@ -21,7 +21,9 @@ namespace ElixAudioPlayer.MainWindow.ViewModels
         {
             if (viewModel is BasePlayListViewModel)
             {
-                MusicControlViewModel.CurrentPlayListViewModel = (BasePlayListViewModel)viewModel;
+                var castedViewModel = (BasePlayListViewModel)viewModel;
+                castedViewModel.SetPlayByClickCommand(MusicControlViewModel.SelectAndPlayTrack);
+                MusicControlViewModel.CurrentPlayListViewModel = castedViewModel;
             }
         }
     }

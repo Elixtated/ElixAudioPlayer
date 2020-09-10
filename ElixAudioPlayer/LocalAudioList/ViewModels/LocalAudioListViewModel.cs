@@ -19,10 +19,11 @@ namespace ElixAudioPlayer.LocalAudioList.ViewModels
 
         public LocalAudioListViewModel()
         {
-            OpenBrowseCommand = new RelayCommand(OpenBrowse);
+            OpenBrowseCommand = new RelayCommand(OpenBrowse);  
         }
 
         public ICommand OpenBrowseCommand { get; }
+        
 
         private void OpenBrowse()
         {

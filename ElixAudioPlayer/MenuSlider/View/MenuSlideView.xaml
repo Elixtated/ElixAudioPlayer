@@ -8,84 +8,19 @@
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       mc:Ignorable="d"
       x:Name="ControlMenu"
-      Width="60" Background="#FF1B3861"
+      Width="190" Background="#FF1B3861"
       d:DataContext="{d:DesignInstance vm:MenuSlideViewModel}">
 
     <UserControl.DataContext>
         <vm:MenuSlideViewModel></vm:MenuSlideViewModel>
     </UserControl.DataContext>
 
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
-        <Storyboard x:Key="MenuOpen">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" 
-                                           Storyboard.TargetName="ControlMenu">
-                <EasingDoubleKeyFrame KeyTime="0" 
-                                      Value="60"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0.5" 
-                                      Value="200"/>
-            </DoubleAnimationUsingKeyFrames>
-        </Storyboard>
-
-        <Storyboard x:Key="MenuClose">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" 
-                                           Storyboard.TargetName="ControlMenu">
-                <EasingDoubleKeyFrame KeyTime="0"
-                                      Value="200"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0.5" 
-                                      Value="60"/>
-            </DoubleAnimationUsingKeyFrames>
-        </Storyboard>
-    </UserControl.Resources>
-
     <StackPanel>
         <Grid Height="60" Background="White">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="ButtonCloseMenu"
-                    Width="60"
-                    Height="60"
-                    Background="{x:Null}"
-                    BorderBrush="{x:Null}"
-                    VerticalAlignment="Top" 
-                    HorizontalAlignment="Right" 
-                    Visibility="{Binding IsOpen,
-                    Converter={StaticResource booleanToVisibilityConverter}}"
-                    Command="{Binding CloseMenuCommand}">
-                <materialDesign:PackIcon Foreground="#FF1B3861"
-                                         Kind="ArrowLeft"
-                                         Width="25" 
-                                         Height="25"/>
-                <Button.Triggers>
-                    <EventTrigger RoutedEvent="ButtonBase.Click"
-                      SourceName="ButtonCloseMenu">
-                        <BeginStoryboard Storyboard="{StaticResource MenuClose}"/>
-                    </EventTrigger>
-                </Button.Triggers>
-            </Button>
-            <Button x:Name="ButtonOpenMenu"
-                    Width="60" 
-                    Height="60" 
-                     Background="{x:Null}"
-                    BorderBrush="{x:Null}"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Right"
-                    Visibility="{Binding IsClose,
-                    Converter={StaticResource booleanToVisibilityConverter}}"
-                    Command="{Binding OpenMenuCommand}">
-                <materialDesign:PackIcon Foreground="#FF1B3861" 
-                                         Kind="Menu"
-                                         Width="25"
-                                         Height="25"/>
-                
-                <Button.Triggers>
-                    <EventTrigger RoutedEvent="ButtonBase.Click"
-                      SourceName="ButtonOpenMenu">
-                        <BeginStoryboard Storyboard="{StaticResource MenuOpen}"/>
-                    </EventTrigger>
-                </Button.Triggers>
-            </Button>
+
         </Grid>
         <ListView ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   Foreground="White">
