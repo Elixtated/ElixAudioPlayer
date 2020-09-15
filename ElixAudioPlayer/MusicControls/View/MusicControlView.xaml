@@ -30,7 +30,7 @@
             <TextBlock Grid.Column="0" Text="{Binding TimeNowText}" 
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
-            <Slider Grid.Column="1"
+            <Slider Grid.Column="1" 
                     Height="20"
                     TickFrequency="0.01"
                     Minimum="0"
@@ -73,19 +73,56 @@
                 <Button Width="60"
                         Height="40"
                         Background="{x:Null}"
-                        BorderBrush="{x:Null}">
-                    <materialDesign:PackIcon Kind="ShuffleVariant"
-                                             Foreground="#FF1B3861"
-                                             Width="30"
-                                             Height="35"
-                                             VerticalAlignment="Center"
-                                             HorizontalAlignment="Center"/>
+                        BorderBrush="{x:Null}"
+                        Command="{Binding ShuffleTracksCommand}">
+                    
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSuffleOn}" Value="true">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate>
+                                                <StackPanel Cursor="Hand">
+                                                    <materialDesign:PackIcon Kind="ShuffleDisabled"
+                                                                             Foreground="#FF1B3861"
+                                                                             Width="30"
+                                                                             Height="35"
+                                                                             VerticalAlignment="Center"
+                                                                             HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+
+                                <DataTrigger Binding="{Binding IsSuffleOn}" Value="false">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate>
+                                                <StackPanel Cursor="Hand">
+                                                    <materialDesign:PackIcon Kind="ShuffleVariant"
+                                                                             Foreground="#FF1B3861"
+                                                                             Width="30"
+                                                                             Height="35"
+                                                                             VerticalAlignment="Center"
+                                                                             HorizontalAlignment="Center"/>
+                                                </StackPanel>
+
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                 </Button>
                 <Button Grid.Column="1"
                         Width="60"
                         Height="40"
                         Background="{x:Null}"
-                        BorderBrush="{x:Null}">
+                        BorderBrush="{x:Null}"
+                        Command="{Binding SwitchPreviousTrackCommand}">
                     <materialDesign:PackIcon Kind="SkipPrevious"
                                              Foreground="#FF1B3861"
                                              Width="30"
@@ -133,7 +170,7 @@
                                                 VerticalAlignment="Center"
                                                 HorizontalAlignment="Center"/>
                                                 </StackPanel>
-                                                
+
                                             </ControlTemplate>
                                         </Setter.Value>
                                     </Setter>
@@ -141,34 +178,14 @@
                             </Style.Triggers>
                         </Style>
                     </Button.Style>
-                    <materialDesign:PackIcon Kind="PlayCircle"
-                                             Foreground="#FF1B3861"
-                                             Width="30"
-                                             Height="35"
-                                             VerticalAlignment="Center"
-                                             HorizontalAlignment="Center"/>
                 </Button>
-
-                <!--<Button Grid.Column="2"
-                        Width="60"
-                        Height="40"
-                        Background="{x:Null}"
-                        BorderBrush="{x:Null}"
-                        Visibility="{Binding IsPlaying,
-                    Converter={StaticResource booleanToVisibilityConverter}}"
-                        Command="{Binding PauseCommand}">
-                    <materialDesign:PackIcon Kind="PauseCircle"
-                                             Foreground="#FF1B3861"
-                                             Width="30"
-                                             Height="35"
-                                             VerticalAlignment="Center"
-                                             HorizontalAlignment="Center"/>
-                </Button>-->
+                
                 <Button Grid.Column="3"
                         Width="60"
                         Height="40"
                         Background="{x:Null}"
-                        BorderBrush="{x:Null}">
+                        BorderBrush="{x:Null}"
+                        Command="{Binding SwitchNextTrackCommand}">
                     <materialDesign:PackIcon Kind="SkipNext"
                                              Foreground="#FF1B3861"
                                              Width="30"
@@ -180,7 +197,8 @@
                         Width="60"
                         Height="40"
                         Background="{x:Null}"
-                    BorderBrush="{x:Null}">
+                    BorderBrush="{x:Null}"
+                       Command="{Binding RepeatTrackCommand}">
                     <materialDesign:PackIcon Kind="Repeat"
                                              Foreground="#FF1B3861"
                                              Width="30"

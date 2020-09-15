@@ -19,6 +19,8 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         private TimeSpan _trackTimeNow;
         private string _timeNowText;
         private string _totalDurationText;
+        private bool _isShuffleOn;
+        private bool _isRepeatOn;
 
 
         public MusicControlViewModel()
@@ -28,6 +30,10 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             SelectAndPlayTrackCommand = new RelayCommand(SelectAndPlayTrack);
             SetVolumeCommand = new RelayCommand(SetVolume);
             SetPositionCommand = new RelayCommand(SetPosition);
+            SwitchNextTrackCommand = new RelayCommand(SwitchNextTrack);
+            SwitchPreviousTrackCommand = new RelayCommand(SwitchPreviousTrack);
+            ShuffleTracksCommand = new RelayCommand(ShuffleTracks);
+            RepeatTrackCommand = new RelayCommand(RepeatTrack);
             MediaPlayer.MediaEnded += PlayNextTrack;
         }
 
@@ -36,13 +42,40 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
 
         public ICommand PlayCommand { get; }
+
+        public ICommand SwitchPreviousTrackCommand { get; }
+
+        public ICommand SwitchNextTrackCommand { get; }
+
+        public ICommand ShuffleTracksCommand { get; }
+
+        public ICommand RepeatTrackCommand { get; }
+
         public ICommand SetVolumeCommand { get; }
+
         public ICommand SetPositionCommand { get; }
+
         public ICommand SelectAndPlayTrackCommand { get; }
 
 
 
         #region Propertyes
+
+        public bool IsSuffleOn
+        {
+            get => _isShuffleOn;
+            set => Set(ref _isShuffleOn, value);
+        }
+        public bool IsRepeatOn
+        {
+            get => _isRepeatOn;
+            set => Set(ref _isRepeatOn, value);
+        }
+
+        public KeyValuePair<Guid, int> CurrentTrack
+        {
+            get => CurrentPlayListViewModel.TracksOrder.FirstOrDefault(x => x.Key == CurrentPlayListViewModel.SelectedTrack.Guid);
+        }
 
         public double VolumeValue
         {
@@ -94,25 +127,12 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
         private void PlayNextTrack(object sender, EventArgs e)
         {
-
-            var currentTrack = CurrentPlayListViewModel.TracksOrder.FirstOrDefault(x => x.Key == CurrentPlayListViewModel.SelectedTrack.Guid);
-            int nextTrackIndex;
-            if (!currentTrack.Equals(default(KeyValuePair<Guid, int>)))
-            {
-                nextTrackIndex =/*isRepeat ? currentTrack.Value:*/currentTrack.Value + 1;
-                
-
-                if (CurrentPlayListViewModel.Tracks.Count > nextTrackIndex)
-                {
-                    CurrentPlayListViewModel.SelectedTrack = CurrentPlayListViewModel.Tracks[nextTrackIndex];
-                    StartTrack(new Uri(CurrentPlayListViewModel.Tracks[nextTrackIndex].FileSource));
-                }
-            }
+            SwitchNextTrack();
         }
 
 
 
-        public void Play()
+        private void Play()
         {
             IsPlaying = !IsPlaying;
             if (IsPlaying)
@@ -121,7 +141,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
                 {
                     if (!MediaPlayer.HasAudio)
                     {
-                        StartTrack(new Uri(CurrentPlayListViewModel.SelectedTrack.FileSource));
+                        StartTrack(null);
                     }
                     else if (MediaPlayer.HasAudio)
                     {
@@ -134,19 +154,74 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             {
                 MediaPlayer.Pause();
             }
-            
+
         }
 
         public void SelectAndPlayTrack()
         {
-            StartTrack(new Uri(CurrentPlayListViewModel.SelectedTrack.FileSource));
+            StartTrack(null);
             IsPlaying = true;
+        }
+        /*isRepeat ? currentTrack.Value:*/
+        private void SwitchNextTrack()
+        {
+
+            int nextTrackIndex;
+            if (!CurrentTrack.Equals(default(KeyValuePair<Guid, int>)))
+            {
+
+                if (IsRepeatOn)
+                {
+                    nextTrackIndex = CurrentTrack.Value;
+                }
+                else if (IsSuffleOn)
+                {
+                    Random random = new Random();
+                    nextTrackIndex = random.Next(0, CurrentPlayListViewModel.Tracks.Count);
+                    while (CurrentPlayListViewModel.Tracks[nextTrackIndex] == CurrentPlayListViewModel.SelectedTrack)
+                    {
+                        nextTrackIndex = random.Next(0, CurrentPlayListViewModel.Tracks.Count);
+                    }
+                }
+                else
+                {
+                    nextTrackIndex = CurrentTrack.Value + 1;
+                }
+                if (CurrentPlayListViewModel.Tracks.Count > nextTrackIndex)
+                {
+
+                    StartTrack(nextTrackIndex);
+                }
+            }
+        }
+
+        private void SwitchPreviousTrack()
+        {
+
+            int nextTrackIndex;
+            if (!CurrentTrack.Equals(default(KeyValuePair<Guid, int>)))
+            {
+                nextTrackIndex = CurrentTrack.Value - 1;
+
+                if (CurrentPlayListViewModel.Tracks.Count > nextTrackIndex & nextTrackIndex >= 0)
+                {
+
+                    StartTrack(nextTrackIndex);
+                }
+            }
         }
 
 
-        private void StartTrack(Uri path)
+        private void StartTrack(int? index = null)
         {
-            MediaPlayer.Open(path);
+
+            if (index != null)
+            {
+                CurrentPlayListViewModel.SelectedTrack = CurrentPlayListViewModel.Tracks[index.Value];
+            }
+            var path = CurrentPlayListViewModel.SelectedTrack.FileSource;
+
+            MediaPlayer.Open(new Uri(path));
             var trackTotalDuration = CurrentPlayListViewModel.SelectedTrack.Duration;
             TotalDurationText = String.Format("{0:00}:{1:00}:{2:00}", trackTotalDuration.Hours, trackTotalDuration.Minutes, trackTotalDuration.Seconds);
 
@@ -160,14 +235,13 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
         private void Timer()
         {
-            var timerVideoTime = new DispatcherTimer();
-            timerVideoTime.Interval = TimeSpan.FromSeconds(1);
-            timerVideoTime.Tick += new EventHandler(TimerTick);
-            timerVideoTime.Start();
-            
+            var timerTime = new DispatcherTimer();
+            timerTime.Interval = TimeSpan.FromSeconds(1);
+            timerTime.Tick += new EventHandler(TimerTick);
+            timerTime.Start();
         }
 
-        void TimerTick(object sender, EventArgs e)
+        private void TimerTick(object sender, EventArgs e)
         {
             if (MediaPlayer.NaturalDuration.HasTimeSpan)
             {
@@ -182,15 +256,24 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
                 }
             }
         }
-
-        public void SetVolume()
+        // проверка таймера на флаг перетаскивания туду епта selectionstarted
+        private void SetVolume()
         {
             MediaPlayer.Volume = VolumeValue;
         }
 
-        public void SetPosition()
+        private void SetPosition()
         {
             MediaPlayer.Position = TimeSpan.FromSeconds(PositionValue);
+        }
+
+        private void ShuffleTracks()
+        {
+            IsSuffleOn = !IsSuffleOn;
+        }
+        private void RepeatTrack()
+        {
+            IsRepeatOn = !IsRepeatOn;
         }
     }
 }
