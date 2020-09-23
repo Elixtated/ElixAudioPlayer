@@ -30,7 +30,7 @@
             <TextBlock Grid.Column="0" Text="{Binding TimeNowText}" 
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
-            <Slider Grid.Column="1" 
+            <Slider Grid.Column="1"
                     Height="20"
                     TickFrequency="0.01"
                     Minimum="0"
@@ -40,6 +40,9 @@
                 <intr:Interaction.Triggers>
                     <intr:EventTrigger EventName="LostMouseCapture">
                         <intr:InvokeCommandAction Command="{Binding SetPositionCommand}"/>
+                    </intr:EventTrigger>
+                    <intr:EventTrigger EventName="GotMouseCapture">
+                        <intr:InvokeCommandAction Command="{Binding DragCommand}"></intr:InvokeCommandAction>
                     </intr:EventTrigger>
                 </intr:Interaction.Triggers>
             </Slider>

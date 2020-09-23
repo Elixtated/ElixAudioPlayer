@@ -21,6 +21,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         private string _totalDurationText;
         private bool _isShuffleOn;
         private bool _isRepeatOn;
+        private bool _isSelectionStarted;
 
 
         public MusicControlViewModel()
@@ -34,6 +35,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             SwitchPreviousTrackCommand = new RelayCommand(SwitchPreviousTrack);
             ShuffleTracksCommand = new RelayCommand(ShuffleTracks);
             RepeatTrackCommand = new RelayCommand(RepeatTrack);
+            DragCommand = new RelayCommand(Drag);
             MediaPlayer.MediaEnded += PlayNextTrack;
         }
 
@@ -42,6 +44,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
 
         public ICommand PlayCommand { get; }
+        public ICommand DragCommand { get; }
 
         public ICommand SwitchPreviousTrackCommand { get; }
 
@@ -66,6 +69,13 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             get => _isShuffleOn;
             set => Set(ref _isShuffleOn, value);
         }
+
+        public bool SelectionStarted
+        {
+            get => _isSelectionStarted;
+            set => Set(ref _isSelectionStarted, value);
+        }
+
         public bool IsRepeatOn
         {
             get => _isRepeatOn;
@@ -243,20 +253,29 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
         private void TimerTick(object sender, EventArgs e)
         {
-            if (MediaPlayer.NaturalDuration.HasTimeSpan)
+            if (SelectionStarted == false)
             {
-                if (MediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                if (MediaPlayer.NaturalDuration.HasTimeSpan)
                 {
-                    if (TrackTimeNow.TotalSeconds > 0)
+                    if (MediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
                     {
-                        TrackTimeNow = MediaPlayer.Position;
-                        TimeNowText = String.Format("{0:00}:{1:00}:{2:00}", TrackTimeNow.Hours, TrackTimeNow.Minutes, TrackTimeNow.Seconds);
-                        PositionValue = TrackTimeNow.TotalSeconds;
+                        if (TrackTimeNow.TotalSeconds > 0)
+                        {
+                            TrackTimeNow = MediaPlayer.Position;
+                            TimeNowText = String.Format("{0:00}:{1:00}:{2:00}", TrackTimeNow.Hours, TrackTimeNow.Minutes, TrackTimeNow.Seconds);
+                            PositionValue = TrackTimeNow.TotalSeconds;
+                        }
                     }
                 }
             }
+
         }
         // проверка таймера на флаг перетаскивания туду епта selectionstarted
+
+        private void Drag()
+        {
+            SelectionStarted = !SelectionStarted;
+        }
         private void SetVolume()
         {
             MediaPlayer.Volume = VolumeValue;
@@ -265,6 +284,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         private void SetPosition()
         {
             MediaPlayer.Position = TimeSpan.FromSeconds(PositionValue);
+            SelectionStarted = !SelectionStarted;
         }
 
         private void ShuffleTracks()

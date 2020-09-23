@@ -46,6 +46,10 @@ namespace ElixAudioPlayer.LocalAudioList.ViewModels
                 }
                 foreach (var trackSource in TrackSourceArray)
                 {
+                    if(Tracks.Any(x => x.FileSource == trackSource))
+                    {
+                        continue;
+                    }
                     TagLib.File audioFile = TagLib.File.Create(trackSource);
                     if (audioFile.Tag.Performers.GetLength(0) > 0)
                     {
@@ -55,6 +59,7 @@ namespace ElixAudioPlayer.LocalAudioList.ViewModels
                     {
                         performerName = Path.GetFileName(trackSource);
                     }
+                    
                     var track = new Track()
                     {
                         FileSource = trackSource,
