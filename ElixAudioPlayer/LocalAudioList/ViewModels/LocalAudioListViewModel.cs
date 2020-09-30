@@ -59,7 +59,7 @@ namespace ElixAudioPlayer.LocalAudioList.ViewModels
                     {
                         performerName = Path.GetFileName(trackSource);
                     }
-                    
+
                     var track = new Track()
                     {
                         FileSource = trackSource,
@@ -67,6 +67,7 @@ namespace ElixAudioPlayer.LocalAudioList.ViewModels
                         Performer = toUtf8(performerName),
                         Album = toUtf8(audioFile.Tag.Album),
                         Duration = audioFile.Properties.Duration,
+                        IsLocal = true
                     };
                     Tracks.Add(track);
                     TracksOrder.Add(track.Guid, TrackCount);

@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace ElixAudioPlayer.Playlist.View
+namespace ElixAudioPlayer.VkAudioList.View
 {
     /// <summary>
-    /// Логика взаимодействия для Page1.xaml
+    /// Логика взаимодействия для VkAudioListPage.xaml
     /// </summary>
-    public partial class PlaylistPage : Page
+    public partial class VkAudioListPage : Page
     {
-        public PlaylistPage()
+        public VkAudioListPage()
         {
             InitializeComponent();
         }

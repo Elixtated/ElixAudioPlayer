@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
+
 namespace CommonModule.BaseViewModel
 {
     public class BasePlayListViewModel : ViewModel

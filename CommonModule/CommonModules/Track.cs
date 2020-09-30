@@ -15,6 +15,7 @@ namespace CommonModule.CommonModules
         private string _title;
         private string _album;
         private TimeSpan _duration;
+        private bool _isLocal;
         
 
         public Track()
@@ -24,6 +25,16 @@ namespace CommonModule.CommonModules
 
 
         public Guid Guid { get; set; }
+
+        public bool IsLocal
+        {
+            get => _isLocal;
+            set
+            {
+                _isLocal = value;
+                OnPropertyChanged();
+            }
+        }
 
         public string FileSource
         {

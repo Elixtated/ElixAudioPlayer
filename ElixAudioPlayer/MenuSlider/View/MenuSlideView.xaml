@@ -37,6 +37,9 @@
                                Margin="20 10"/>
                     
                 </StackPanel>
+                <ListViewItem.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding OpenVkAudioListCommand}"/>
+                </ListViewItem.InputBindings>
             </ListViewItem>
 
             <ListViewItem Height="60">

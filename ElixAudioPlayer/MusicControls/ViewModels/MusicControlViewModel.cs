@@ -1,8 +1,11 @@
 ﻿using CommonModule.BaseViewModel;
 using CommonModule.CommonTools;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -145,26 +148,70 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         private void Play()
         {
             IsPlaying = !IsPlaying;
-            if (IsPlaying)
+            
+            if (CurrentPlayListViewModel.SelectedTrack.IsLocal)
             {
-                if (CurrentPlayListViewModel.SelectedTrack != null && CurrentPlayListViewModel != null)
+                if (IsPlaying)
                 {
-                    if (!MediaPlayer.HasAudio)
+                    if (CurrentPlayListViewModel.SelectedTrack != null && CurrentPlayListViewModel != null)
                     {
-                        StartTrack(null);
+
+                        if (!MediaPlayer.HasAudio)
+                        {
+                            StartTrack(null);
+                        }
+                        else if (MediaPlayer.HasAudio)
+                        {
+                            MediaPlayer.Play();
+                            Timer();
+                        }
                     }
-                    else if (MediaPlayer.HasAudio)
-                    {
-                        MediaPlayer.Play();
-                        Timer();
-                    }
+                }
+                else
+                {
+                    MediaPlayer.Pause();
                 }
             }
             else
             {
-                MediaPlayer.Pause();
+                PlayMp3FromUrl(CurrentPlayListViewModel.SelectedTrack.FileSource);
             }
+            
 
+        }
+
+        public void PlayMp3FromUrl(string url)
+        {
+            using (Stream ms = new MemoryStream())
+            {
+                using (Stream stream = WebRequest.Create(url)
+                    .GetResponse().GetResponseStream())
+                {
+                    byte[] buffer = new byte[32768];
+                    int read;
+                    while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        ms.Write(buffer, 0, read);
+                    }
+                }
+
+                ms.Position = 0;
+                using (WaveStream blockAlignedStream =
+                    new BlockAlignReductionStream(
+                        WaveFormatConversionStream.CreatePcmStream(
+                            new Mp3FileReader(ms))))
+                {
+                    using (WaveOut waveOut = new WaveOut(WaveCallbackInfo.FunctionCallback()))
+                    {
+                        waveOut.Init(blockAlignedStream);
+                        waveOut.Play();
+                        while (waveOut.PlaybackState == PlaybackState.Playing)
+                        {
+                            System.Threading.Thread.Sleep(100);
+                        }
+                    }
+                }
+            }
         }
 
         public void SelectAndPlayTrack()
@@ -270,7 +317,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             }
 
         }
-        // проверка таймера на флаг перетаскивания туду епта selectionstarted
+       
 
         private void Drag()
         {
