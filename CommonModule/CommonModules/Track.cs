@@ -21,6 +21,7 @@ namespace CommonModule.CommonModules
         public Track()
         {
             Guid = Guid.NewGuid();
+            PlaybackState = States.Stopped;
         }
 
 
@@ -85,6 +86,16 @@ namespace CommonModule.CommonModules
                 OnPropertyChanged();
             }
         }
+
+        public enum States
+        {
+            Playing,
+            Paused,
+            Stopped
+        }
+        public States PlaybackState { get; set; }
+        
+
 
 
 

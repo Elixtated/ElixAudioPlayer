@@ -12,12 +12,15 @@
     <Page.DataContext>
         <vm:VkAudioListViewModel></vm:VkAudioListViewModel>
     </Page.DataContext>
-    
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Page.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="0.1*"/>
         </Grid.RowDefinitions>
+        <Rectangle Fill="Red" Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding IsLoading,Converter={StaticResource BooleanToVisibilityConverter}}"></Rectangle>
         <ListBox ItemsSource="{Binding Tracks}" SelectedItem="{Binding SelectedTrack,Mode= TwoWay}">
 
             <ListBox.ItemTemplate>

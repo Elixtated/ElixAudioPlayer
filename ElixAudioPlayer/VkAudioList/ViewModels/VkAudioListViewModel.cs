@@ -6,8 +6,10 @@ using ElixAudioPlayer.VkAudioList.View;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using VkNet;
 using VkNet.Abstractions;
@@ -24,10 +26,11 @@ namespace ElixAudioPlayer.VkAudioList.ViewModels
         private string _login;
         private string _password;
         private string _twoFactorAuthorization;
+        private bool _isLoading;
         public VkAudioListViewModel()
         {
             AutorisationCommand = new RelayCommand(Autorisation);
-            GetAudioCommand = new RelayCommand(GetAudio);
+            GetAudioCommand = new RelayCommand(ShowAudio);
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddAudioBypass();
@@ -36,6 +39,12 @@ namespace ElixAudioPlayer.VkAudioList.ViewModels
         }
         public ICommand AutorisationCommand { get; }
         public ICommand GetAudioCommand { get; }
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => Set(ref _isLoading, value);
+        }
 
         public string Login
         {
@@ -57,20 +66,40 @@ namespace ElixAudioPlayer.VkAudioList.ViewModels
 
         private void Autorisation()
         {
-            _api.Authorize(new ApiAuthParams
-            {
-                Login = Login,
-                Password = Password
 
-            });
+            while (_api.IsAuthorized == false)
+            {
+                _api.Authorize(new ApiAuthParams
+                {
+                    Login = "89963422974",
+                    Password = "neoptimproject1642"
+
+                });
+            }
         }
 
-        private void GetAudio()
+        private async void ShowAudio()
         {
 
-            var audios = _api.Audio.Get(new AudioGetParams { Count = 3000 });
-            
+            var audios = Enumerable.Empty<VkNet.Model.Attachments.Audio>();
 
+
+            var loadedAudios = await Task.Factory.StartNew(async () =>
+            {
+                try
+                {
+                    IsLoading = true;
+                    return await _api.Audio.GetAsync(new AudioGetParams { Count = 2 });
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
+            });
+            audios = await loadedAudios;
+
+            //кружок зарузки с флагами видимости
+            int trackNumber = 0;
             foreach (var audio in audios)
             {
                 if (audio.Url != null & audio.Title != null & audio.Artist != null & audio.Album != null)
@@ -81,10 +110,12 @@ namespace ElixAudioPlayer.VkAudioList.ViewModels
                         Title = audio.Title,
                         Performer = audio.Artist,
                         Album = audio.Album.Title,
-                        Duration = TimeSpan.FromTicks(audio.Duration),
+                        Duration = TimeSpan.FromSeconds(audio.Duration),
                         IsLocal = false
                     };
                     Tracks.Add(track);
+                    TracksOrder.Add(track.Guid, trackNumber);
+                    trackNumber++;
                 }
             }
         }

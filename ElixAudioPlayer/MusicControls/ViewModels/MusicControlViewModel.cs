@@ -1,5 +1,6 @@
 ﻿using CommonModule.BaseViewModel;
 using CommonModule.CommonTools;
+using CommonModule.Services.VkMusicService;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
@@ -40,10 +41,12 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
             RepeatTrackCommand = new RelayCommand(RepeatTrack);
             DragCommand = new RelayCommand(Drag);
             MediaPlayer.MediaEnded += PlayNextTrack;
+            VkMusicPlayerService = VkMusicPlayerService.Instance;
         }
 
         public BasePlayListViewModel CurrentPlayListViewModel { get; set; }
         MediaPlayer MediaPlayer { get; set; }
+        VkMusicPlayerService VkMusicPlayerService { get; set; }
 
 
         public ICommand PlayCommand { get; }
@@ -118,10 +121,13 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
         public TimeSpan TrackTimeNow
         {
-            get => MediaPlayer.Position;
+            get => _trackTimeNow;
             set => Set(ref _trackTimeNow, value);
-
         }
+
+
+
+
 
         public string TimeNowText
         {
@@ -148,7 +154,7 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         private void Play()
         {
             IsPlaying = !IsPlaying;
-            
+
             if (CurrentPlayListViewModel.SelectedTrack.IsLocal)
             {
                 if (IsPlaying)
@@ -159,70 +165,72 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
                         if (!MediaPlayer.HasAudio)
                         {
                             StartTrack(null);
+                            
                         }
-                        else if (MediaPlayer.HasAudio)
+                        else
                         {
                             MediaPlayer.Play();
-                            Timer();
+                            CurrentPlayListViewModel.SelectedTrack.PlaybackState = CommonModule.CommonModules.Track.States.Playing;
+                            
                         }
                     }
                 }
                 else
                 {
                     MediaPlayer.Pause();
+                    CurrentPlayListViewModel.SelectedTrack.PlaybackState = CommonModule.CommonModules.Track.States.Paused;
                 }
             }
             else
             {
-                PlayMp3FromUrl(CurrentPlayListViewModel.SelectedTrack.FileSource);
-            }
-            
-
-        }
-
-        public void PlayMp3FromUrl(string url)
-        {
-            using (Stream ms = new MemoryStream())
-            {
-                using (Stream stream = WebRequest.Create(url)
-                    .GetResponse().GetResponseStream())
+                if (IsPlaying)
                 {
-                    byte[] buffer = new byte[32768];
-                    int read;
-                    while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    if (CurrentPlayListViewModel.SelectedTrack != null && CurrentPlayListViewModel != null)
                     {
-                        ms.Write(buffer, 0, read);
-                    }
-                }
-
-                ms.Position = 0;
-                using (WaveStream blockAlignedStream =
-                    new BlockAlignReductionStream(
-                        WaveFormatConversionStream.CreatePcmStream(
-                            new Mp3FileReader(ms))))
-                {
-                    using (WaveOut waveOut = new WaveOut(WaveCallbackInfo.FunctionCallback()))
-                    {
-                        waveOut.Init(blockAlignedStream);
-                        waveOut.Play();
-                        while (waveOut.PlaybackState == PlaybackState.Playing)
+                        if (VkMusicPlayerService.HasTrack() == false)
                         {
-                            System.Threading.Thread.Sleep(100);
+                            StartTrack(null);
+                            
+                        }
+                        else
+                        {
+                            VkMusicPlayerService.ResumeVkMusic();
+                            CurrentPlayListViewModel.SelectedTrack.PlaybackState = CommonModule.CommonModules.Track.States.Playing;
                         }
                     }
+
                 }
+                else
+                {
+                    VkMusicPlayerService.PauseVkMusic();
+                    CurrentPlayListViewModel.SelectedTrack.PlaybackState = CommonModule.CommonModules.Track.States.Paused;
+                }
+
             }
+
         }
+
+        private async Task PlayMp3FromUriAsync(string url)
+        {
+            await Task.Run(() => VkMusicPlayerService.PlayVkMusic(url));
+        }
+
+
 
         public void SelectAndPlayTrack()
         {
-            StartTrack(null);
-            IsPlaying = true;
+            if(CurrentPlayListViewModel.SelectedTrack.PlaybackState == CommonModule.CommonModules.Track.States.Paused 
+             | CurrentPlayListViewModel.SelectedTrack.PlaybackState == CommonModule.CommonModules.Track.States.Stopped)
+            {
+                StartTrack(null);
+                IsPlaying = true;
+            }
+           
         }
         /*isRepeat ? currentTrack.Value:*/
         private void SwitchNextTrack()
         {
-
+            IsPlaying = true;
             int nextTrackIndex;
             if (!CurrentTrack.Equals(default(KeyValuePair<Guid, int>)))
             {
@@ -246,14 +254,19 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
                 }
                 if (CurrentPlayListViewModel.Tracks.Count > nextTrackIndex)
                 {
-
+                    if (!CurrentPlayListViewModel.SelectedTrack.IsLocal)
+                    {
+                        VkMusicPlayerService.StopVkMusic();
+                    }
                     StartTrack(nextTrackIndex);
+
                 }
             }
         }
 
         private void SwitchPreviousTrack()
         {
+            IsPlaying = true;
 
             int nextTrackIndex;
             if (!CurrentTrack.Equals(default(KeyValuePair<Guid, int>)))
@@ -262,14 +275,17 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
                 if (CurrentPlayListViewModel.Tracks.Count > nextTrackIndex & nextTrackIndex >= 0)
                 {
-
+                    if (!CurrentPlayListViewModel.SelectedTrack.IsLocal)
+                    {
+                        VkMusicPlayerService.StopVkMusic();
+                    }
                     StartTrack(nextTrackIndex);
                 }
             }
         }
 
 
-        private void StartTrack(int? index = null)
+        private async void StartTrack(int? index = null)
         {
 
             if (index != null)
@@ -277,16 +293,24 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
                 CurrentPlayListViewModel.SelectedTrack = CurrentPlayListViewModel.Tracks[index.Value];
             }
             var path = CurrentPlayListViewModel.SelectedTrack.FileSource;
+            if (CurrentPlayListViewModel.SelectedTrack.IsLocal)
+            {
+                MediaPlayer.Open(new Uri(path));
+                MediaPlayer.Play();
+            }
+            else
+            {
+                await PlayMp3FromUriAsync(path);
+            }
 
-            MediaPlayer.Open(new Uri(path));
             var trackTotalDuration = CurrentPlayListViewModel.SelectedTrack.Duration;
             TotalDurationText = String.Format("{0:00}:{1:00}:{2:00}", trackTotalDuration.Hours, trackTotalDuration.Minutes, trackTotalDuration.Seconds);
-
+            TimeNowText = String.Format("{0:00}:{1:00}:{2:00}", TrackTimeNow.Hours, TrackTimeNow.Minutes, TrackTimeNow.Seconds);
             MaxDurationValue = trackTotalDuration.TotalSeconds;
 
             PositionValue = 0;
 
-            MediaPlayer.Play();
+            CurrentPlayListViewModel.SelectedTrack.PlaybackState = CommonModule.CommonModules.Track.States.Playing;
             Timer();
         }
 
@@ -302,22 +326,48 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
         {
             if (SelectionStarted == false)
             {
-                if (MediaPlayer.NaturalDuration.HasTimeSpan)
-                {
-                    if (MediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                if (CurrentPlayListViewModel.SelectedTrack != null)
+                    switch (CurrentPlayListViewModel.SelectedTrack.IsLocal)
                     {
-                        if (TrackTimeNow.TotalSeconds > 0)
-                        {
-                            TrackTimeNow = MediaPlayer.Position;
-                            TimeNowText = String.Format("{0:00}:{1:00}:{2:00}", TrackTimeNow.Hours, TrackTimeNow.Minutes, TrackTimeNow.Seconds);
-                            PositionValue = TrackTimeNow.TotalSeconds;
-                        }
+                        case true:
+                            if (MediaPlayer.NaturalDuration.HasTimeSpan)
+                            {
+                                if (CurrentPlayListViewModel.SelectedTrack.IsLocal)
+                                {
+                                    TrackTimeNow = MediaPlayer.Position;
+                                }
+                            }
+                            break;
+                        case false:
+                            if (VkMusicPlayerService.GetPositionTrack() != null)
+                                TrackTimeNow = VkMusicPlayerService.GetPositionTrack();
+                            break;
+
                     }
-                }
+                //if (CurrentPlayListViewModel.SelectedTrack.IsLocal)
+                //{
+                //    if (MediaPlayer.NaturalDuration.HasTimeSpan)
+                //    {
+                //        if (CurrentPlayListViewModel.SelectedTrack.IsLocal)
+                //        {
+                //            TrackTimeNow = MediaPlayer.Position;
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    TrackTimeNow = VkMusicPlayerService.GetPositionTrack();
+                //}
+
+                PositionValue = TrackTimeNow.TotalSeconds;
+                TimeNowText = String.Format("{0:00}:{1:00}:{2:00}", TrackTimeNow.Hours, TrackTimeNow.Minutes, TrackTimeNow.Seconds);
             }
 
         }
-       
+
+
+
+        //TrackTimeNow = VkMusicPlayerService.GetPositionTrack();
 
         private void Drag()
         {
@@ -330,7 +380,15 @@ namespace ElixAudioPlayer.MusicControls.ViewModels
 
         private void SetPosition()
         {
-            MediaPlayer.Position = TimeSpan.FromSeconds(PositionValue);
+            if (CurrentPlayListViewModel.SelectedTrack.IsLocal)
+            {
+                MediaPlayer.Position = TimeSpan.FromSeconds(PositionValue);
+            }
+            else
+            {
+                VkMusicPlayerService.SetPositionTrack(PositionValue);
+            }
+            
             SelectionStarted = !SelectionStarted;
         }
 
