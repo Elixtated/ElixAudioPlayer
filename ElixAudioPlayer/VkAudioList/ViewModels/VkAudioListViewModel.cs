@@ -71,8 +71,8 @@ namespace ElixAudioPlayer.VkAudioList.ViewModels
             {
                 _api.Authorize(new ApiAuthParams
                 {
-                    Login = "89963422974",
-                    Password = "neoptimproject1642"
+                    Login = "",
+                    Password = ""
 
                 });
             }
